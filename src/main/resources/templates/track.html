@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Track Complaint')}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main class="container">
+  <h1>Track a Complaint</h1>
+  <form th:action="@{/track}" method="get" class="inline-form">
+    <label for="trackRef">Reference number</label>
+    <input type="text" id="trackRef" name="ref" th:value="${ref}" placeholder="LCP-2026-000001">
+    <button type="submit" id="trackSubmit" class="btn">Track</button>
+  </form>
+
+  <p class="error" id="notFound" th:if="${notFound}">No complaint was found for that reference number.</p>
+
+  <section th:if="${complaint != null}" class="panel">
+    <h2>Complaint <span th:text="${complaint.referenceNo}"></span></h2>
+    <p>Status: <strong id="statusValue" th:text="${complaint.status}">SUBMITTED</strong></p>
+    <p>Type: <span th:text="${complaint.type}"></span></p>
+    <p>Submitted: <span th:text="${#temporals.format(complaint.createdAt, 'dd MMM yyyy HH:mm')}"></span></p>
+    <p th:if="${complaint.reviewerComment != null}">Reviewer comment: <span id="reviewerComment" th:text="${complaint.reviewerComment}"></span></p>
+    <h3>History</h3>
+    <table>
+      <thead><tr><th>When</th><th>From</th><th>To</th><th>By</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr th:each="h : ${history}">
+          <td th:text="${#temporals.format(h.changedAt, 'dd MMM HH:mm')}"></td>
+          <td th:text="${h.oldStatus}"></td>
+          <td th:text="${h.newStatus}"></td>
+          <td th:text="${h.changedBy}"></td>
+          <td th:text="${h.note}"></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

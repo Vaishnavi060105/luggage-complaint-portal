@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${title} + ' | Luggage Complaint Portal'">Luggage Complaint Portal</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header th:fragment="nav">
+  <div class="env-banner" id="envBanner">Environment: <strong th:text="${@environment.getProperty('app.environment')}">LOCAL</strong></div>
+  <nav class="navbar">
+    <a class="brand" th:href="@{/}">Luggage Complaint Portal</a>
+    <span class="links">
+      <a th:href="@{/complaints/new}">Submit</a>
+      <a th:href="@{/track}">Track</a>
+      <a th:href="@{/reviewer/complaints}">Reviewer</a>
+    </span>
+  </nav>
+</header>
+<footer th:fragment="footer" class="footer">
+  Luggage Complaint Portal &middot; Environment:
+  <span id="footerEnv" th:text="${@environment.getProperty('app.environment')}">LOCAL</span>
+</footer>
+</body>
+</html>

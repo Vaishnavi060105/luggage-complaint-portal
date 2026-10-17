@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Complaint Submitted')}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main class="container">
+  <h1>Complaint submitted</h1>
+  <p>Thank you. Please keep your reference number to track the complaint:</p>
+  <p class="refbox"><strong id="referenceNo" th:text="${ref}">LCP-2026-000001</strong></p>
+  <a class="btn" th:href="@{/track(ref=${ref})}">Track this complaint</a>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

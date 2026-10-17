@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Submit Complaint')}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main class="container">
+  <h1>Submit a Complaint</h1>
+  <!-- novalidate: the server does the validation so errors are shown consistently -->
+  <form th:action="@{/complaints}" th:object="${complaintForm}" method="post" enctype="multipart/form-data" novalidate>
+    <div class="field"><label for="passengerName">Passenger name</label>
+      <input type="text" th:field="*{passengerName}">
+      <span class="error" th:if="${#fields.hasErrors('passengerName')}" th:errors="*{passengerName}"></span></div>
+
+    <div class="field"><label for="email">Email</label>
+      <input type="text" th:field="*{email}" placeholder="name@example.com">
+      <span class="error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></span></div>
+
+    <div class="field"><label for="phone">Phone (10 digits)</label>
+      <input type="text" th:field="*{phone}">
+      <span class="error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></span></div>
+
+    <div class="field"><label for="flightNo">Flight number</label>
+      <input type="text" th:field="*{flightNo}" placeholder="AI202">
+      <span class="error" th:if="${#fields.hasErrors('flightNo')}" th:errors="*{flightNo}"></span></div>
+
+    <div class="field"><label for="pnr">PNR (6 characters)</label>
+      <input type="text" th:field="*{pnr}" placeholder="AB12CD">
+      <span class="error" th:if="${#fields.hasErrors('pnr')}" th:errors="*{pnr}"></span></div>
+
+    <div class="field"><label for="bagTag">Bag tag (10 digits)</label>
+      <input type="text" th:field="*{bagTag}">
+      <span class="error" th:if="${#fields.hasErrors('bagTag')}" th:errors="*{bagTag}"></span></div>
+
+    <div class="field"><label for="type">Complaint type</label>
+      <select th:field="*{type}">
+        <option value="">-- Select --</option>
+        <option th:each="t : ${types}" th:value="${t}" th:text="${t}"></option>
+      </select>
+      <span class="error" th:if="${#fields.hasErrors('type')}" th:errors="*{type}"></span></div>
+
+    <div class="field"><label for="description">Description (10 to 500 characters)</label>
+      <textarea th:field="*{description}" rows="4"></textarea>
+      <span class="error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></span></div>
+
+    <div class="field"><label for="attachment">Supporting document (JPG, PNG or PDF, max 2 MB, optional)</label>
+      <input type="file" id="attachment" name="attachment" accept=".jpg,.jpeg,.png,.pdf">
+      <span class="error" th:if="${#fields.hasErrors('attachment')}" th:errors="*{attachment}"></span></div>
+
+    <button type="submit" id="submit" class="btn">Submit complaint</button>
+  </form>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

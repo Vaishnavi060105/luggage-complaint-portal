@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Home')}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main class="container">
+  <h1>Luggage Complaint Portal</h1>
+  <p>Report delayed, damaged or lost luggage, then track your complaint with a reference number.</p>
+  <div class="cards">
+    <a class="card" id="linkSubmit" th:href="@{/complaints/new}"><h2>Submit Complaint</h2><p>Report a luggage problem.</p></a>
+    <a class="card" id="linkTrack" th:href="@{/track}"><h2>Track Complaint</h2><p>Check the status of your complaint.</p></a>
+    <a class="card" id="linkReviewer" th:href="@{/login}"><h2>Reviewer Login</h2><p>For airline staff only.</p></a>
+  </div>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>
