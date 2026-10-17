@@ -1,0 +1,106 @@
+---
+# Configures a server to run the Luggage Complaint Portal as a systemd service.
+# Re-running changes nothing (idempotent). Rollback = run with the previous app_version.
+- name: Provision Luggage Complaint Portal
+  hosts: portal
+  become: true
+  vars:
+    app_version: "1.0.0"
+    app_user: portal
+    app_dir: /opt/luggage-portal
+    app_port: 8080
+    war_src: "{{ playbook_dir }}/../target/luggage-portal.war"
+
+  tasks:
+    - name: Install Java 17 and curl
+      ansible.builtin.apt:
+        name: [openjdk-17-jre-headless, curl]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Create service user
+      ansible.builtin.user:
+        name: "{{ app_user }}"
+        system: true
+        shell: /usr/sbin/nologin
+        create_home: false
+
+    - name: Create application folders
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: "0755"
+      loop:
+        - "{{ app_dir }}"
+        - "{{ app_dir }}/releases"
+        - "{{ app_dir }}/uploads"
+
+    - name: Create log folder
+      ansible.builtin.file:
+        path: /var/log/luggage-portal
+        state: directory
+        owner: "{{ app_user }}"
+        mode: "0755"
+
+    - name: Copy this release (force=false keeps an existing release untouched, which makes rollback safe)
+      ansible.builtin.copy:
+        src: "{{ war_src }}"
+        dest: "{{ app_dir }}/releases/portal-{{ app_version }}.war"
+        owner: "{{ app_user }}"
+        mode: "0644"
+        force: false
+
+    - name: Point current.war at the selected release
+      ansible.builtin.file:
+        src: "{{ app_dir }}/releases/portal-{{ app_version }}.war"
+        dest: "{{ app_dir }}/current.war"
+        state: link
+      notify: Restart portal
+
+    - name: Install systemd unit
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/luggage-portal.service
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Luggage Complaint Portal
+          After=network.target
+
+          [Service]
+          User={{ app_user }}
+          WorkingDirectory={{ app_dir }}
+          ExecStart=/usr/bin/java -jar {{ app_dir }}/current.war --server.port={{ app_port }} --app.upload-dir={{ app_dir }}/uploads
+          Restart=always
+
+          [Install]
+          WantedBy=multi-user.target
+      notify: Restart portal
+
+    - name: Enable and start the service
+      ansible.builtin.systemd:
+        name: luggage-portal
+        enabled: true
+        state: started
+        daemon_reload: true
+
+    - name: Flush handlers so a restart happens before the health check
+      ansible.builtin.meta: flush_handlers
+
+    - name: Health check (waits until the app answers UP)
+      ansible.builtin.uri:
+        url: "http://localhost:{{ app_port }}/actuator/health"
+        return_content: true
+      register: health
+      until: health.status == 200 and 'UP' in health.content
+      retries: 20
+      delay: 5
+      changed_when: false
+
+  handlers:
+    - name: Restart portal
+      ansible.builtin.systemd:
+        name: luggage-portal
+        state: restarted
