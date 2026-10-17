@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Complaint Details')}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main class="container">
+  <p><a th:href="@{/reviewer/complaints}">&larr; Back to list</a></p>
+  <h1>Complaint <span th:text="${complaint.referenceNo}"></span></h1>
+  <p class="success" th:if="${message}" th:text="${message}"></p>
+  <p class="error" th:if="${error}" th:text="${error}"></p>
+
+  <section class="panel">
+    <p>Status: <strong id="statusValue" th:text="${complaint.status}">UNDER_REVIEW</strong></p>
+    <p>Passenger: <span th:text="${complaint.passengerName}"></span> (<span th:text="${complaint.email}"></span>, <span th:text="${complaint.phone}"></span>)</p>
+    <p>Flight: <span th:text="${complaint.flightNo}"></span> &middot; PNR: <span th:text="${complaint.pnr}"></span> &middot; Bag tag: <span th:text="${complaint.bagTag}"></span></p>
+    <p>Type: <span th:text="${complaint.type}"></span></p>
+    <p>Description: <span th:text="${complaint.description}"></span></p>
+    <p th:if="${complaint.attachmentPath != null}">Attachment on file: <span th:text="${complaint.attachmentPath}"></span></p>
+    <p th:if="${complaint.reviewerComment != null}">Reviewer comment: <span th:text="${complaint.reviewerComment}"></span></p>
+  </section>
+
+  <section class="panel" th:unless="${decided}">
+    <h2>Decision</h2>
+    <form th:action="@{/reviewer/complaints/{id}/decision(id=${complaint.id})}" method="post">
+      <div class="field"><label for="decision">Decision</label>
+        <select id="decision" name="decision">
+          <option value="APPROVE">Approve</option>
+          <option value="REJECT">Reject</option>
+        </select></div>
+      <div class="field"><label for="comment">Comment (required)</label>
+        <textarea id="comment" name="comment" rows="3"></textarea></div>
+      <button type="submit" id="decisionSubmit" class="btn">Save decision</button>
+    </form>
+  </section>
+
+  <h3>History</h3>
+  <table>
+    <thead><tr><th>When</th><th>From</th><th>To</th><th>By</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr th:each="h : ${history}">
+        <td th:text="${#temporals.format(h.changedAt, 'dd MMM HH:mm')}"></td>
+        <td th:text="${h.oldStatus}"></td>
+        <td th:text="${h.newStatus}"></td>
+        <td th:text="${h.changedBy}"></td>
+        <td th:text="${h.note}"></td>
+      </tr>
+    </tbody>
+  </table>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>

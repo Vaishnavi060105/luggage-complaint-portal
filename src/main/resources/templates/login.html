@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Reviewer Login')}"></head>
+<body>
+<header th:replace="~{fragments :: nav}"></header>
+<main class="container narrow">
+  <h1>Reviewer Login</h1>
+  <p class="error" th:if="${param.error}">Invalid username or password.</p>
+  <form th:action="@{/login}" method="post">
+    <div class="field"><label for="username">Username</label>
+      <input type="text" id="username" name="username"></div>
+    <div class="field"><label for="password">Password</label>
+      <input type="password" id="password" name="password"></div>
+    <button type="submit" id="loginSubmit" class="btn">Login</button>
+  </form>
+</main>
+<footer th:replace="~{fragments :: footer}"></footer>
+</body>
+</html>
