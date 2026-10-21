@@ -1,18 +1,19 @@
-// Task 8 pipeline: Checkout -> Build -> Package -> Deploy (Tomcat)
-// The full pipeline (tests, Selenium, Docker) is kept in Jenkinsfile.full for Tasks 10-12.
+// Task 10 pipeline: Checkout -> Build -> Unit Test -> Package -> Deploy to Test
+//                   -> Selenium Tests (quality gate) -> Deploy Final
+// If Unit Test or Selenium Tests fail, Jenkins stops and Deploy Final never runs.
 pipeline {
     agent any
 
     parameters {
         choice(name: 'DEPLOY_ENV', choices: ['dev', 'staging'],
-               description: 'Environment label baked into the app (shown in banner and footer)')
+               description: 'Environment label baked into the app')
     }
 
     environment {
         JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'
         PATH      = "${JAVA_HOME}/bin:${PATH}"
         WEBAPPS   = '/opt/tomcat/webapps'
-        APP_URL   = 'http://localhost:8082/luggage-portal'
+        BASE      = 'http://localhost:8082'
         APP_ENV   = "${(params.DEPLOY_ENV ?: 'dev').toUpperCase()}"
     }
 
@@ -25,26 +26,47 @@ pipeline {
             steps { sh 'mvn -B clean compile' }
         }
 
+        stage('Unit Test') {
+            steps { sh 'mvn -B test' }
+            post { always { junit allowEmptyResults: true, testResults: 'target/surefire-reports/*.xml' } }
+        }
+
         stage('Package') {
-            // APP_ENV and the build number are written into the WAR
             steps { sh 'mvn -B package -DskipTests -Dapp.env=$APP_ENV -Dapp.build=$BUILD_NUMBER' }
         }
 
-        stage('Deploy') {
+        stage('Deploy to Test') {
+            steps {
+                sh '''
+                    cp target/luggage-portal.war $WEBAPPS/luggage-test.war
+                    bash scripts/wait-for-build.sh $BASE/luggage-test $BUILD_NUMBER
+                '''
+            }
+        }
+
+        stage('Selenium Tests') {
+            steps { sh 'mvn -B test -Pselenium -Dbase.url=$BASE/luggage-test' }
+            post {
+                always {
+                    junit allowEmptyResults: true, testResults: 'target/surefire-reports/*.xml'
+                    archiveArtifacts artifacts: 'target/screenshots/*.png', allowEmptyArchive: true
+                }
+            }
+        }
+
+        stage('Deploy Final') {
+            // Only reached when every test passed
             steps {
                 sh '''
                     cp target/luggage-portal.war $WEBAPPS/luggage-portal.war
-                    bash scripts/wait-for-build.sh $APP_URL $BUILD_NUMBER
+                    bash scripts/wait-for-build.sh $BASE/luggage-portal $BUILD_NUMBER
                 '''
             }
         }
     }
 
     post {
-        success {
-            archiveArtifacts artifacts: 'target/*.war', fingerprint: true
-            echo "Deployed to ${env.APP_URL} (environment: ${env.APP_ENV})"
-        }
-        failure { echo 'Pipeline failed - see the stage that turned red. Nothing after it ran.' }
+        success { archiveArtifacts artifacts: 'target/*.war', fingerprint: true }
+        failure { echo 'Pipeline failed - see the red stage. Deploy Final did not run.' }
     }
 }
