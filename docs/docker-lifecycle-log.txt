@@ -1,0 +1,189 @@
+
+$ mvn -B -q package -DskipTests
+
+$ docker build -t luggage-portal:1.0 -t luggage-portal:latest .
+DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+            Install the buildx component to build images with BuildKit:
+            https://docs.docker.com/go/buildx/
+
+Sending build context to Docker daemon  56.48MB
+Step 1/6 : FROM eclipse-temurin:17-jre
+17-jre: Pulling from library/eclipse-temurin
+bf95cc2a7260: Pulling fs layer
+6ff07f99d2e6: Pulling fs layer
+0bd1003c3abc: Pulling fs layer
+435bf5c20694: Pulling fs layer
+d9d511d19a19: Pulling fs layer
+6f9afe060529: Pulling fs layer
+6f9afe060529: Download complete
+d9d511d19a19: Download complete
+bf95cc2a7260: Download complete
+11dbb1ed9bee: Download complete
+bc7de2b25f6d: Download complete
+6ff07f99d2e6: Download complete
+0bd1003c3abc: Download complete
+435bf5c20694: Download complete
+d9d511d19a19: Pull complete
+435bf5c20694: Pull complete
+6ff07f99d2e6: Pull complete
+6f9afe060529: Pull complete
+bf95cc2a7260: Pull complete
+0bd1003c3abc: Pull complete
+Digest: sha256:e04fa72be13b257a59fdec6dc14af78c8f80f035d3c1ed4e03e45552a231d4c8
+Status: Downloaded newer image for eclipse-temurin:17-jre
+ ---> e04fa72be13b
+Step 2/6 : WORKDIR /app
+ ---> Running in 72d434a18422
+ ---> Removed intermediate container 72d434a18422
+ ---> 1d45c7faad31
+Step 3/6 : COPY target/luggage-portal.war app.war
+ ---> 99789c59be5f
+Step 4/6 : EXPOSE 8080
+ ---> Running in c6117121464d
+ ---> Removed intermediate container c6117121464d
+ ---> 97782f155f18
+Step 5/6 : HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3   CMD curl -f http://localhost:8080/actuator/health || exit 1
+ ---> Running in fabc9e5eef01
+ ---> Removed intermediate container fabc9e5eef01
+ ---> 8158a4bfa77f
+Step 6/6 : ENTRYPOINT ["java", "-jar", "app.war", "--server.port=8080"]
+ ---> Running in f3bceb41335e
+ ---> Removed intermediate container f3bceb41335e
+ ---> cdec67bfc9fe
+Successfully built cdec67bfc9fe
+Successfully tagged luggage-portal:1.0
+Successfully tagged luggage-portal:latest
+
+$ docker images luggage-portal
+WARNING: This output is designed for human readability. For machine-readable output, please use --format.
+IMAGE                   ID             DISK USAGE   CONTENT SIZE   EXTRA
+luggage-portal:1.0      cdec67bfc9fe        534MB          161MB        
+luggage-portal:latest   cdec67bfc9fe        534MB          161MB        
+
+$ docker history luggage-portal:1.0
+IMAGE          CREATED                  CREATED BY                                      SIZE      COMMENT
+cdec67bfc9fe   Less than a second ago   /bin/sh -c #(nop)  ENTRYPOINT ["java" "-jar"…   0B        
+8158a4bfa77f   1 second ago             /bin/sh -c #(nop)  HEALTHCHECK &{["CMD-SHELL…   0B        
+97782f155f18   1 second ago             /bin/sh -c #(nop)  EXPOSE 8080                  0B        
+99789c59be5f   3 seconds ago            /bin/sh -c #(nop) COPY file:6092f2cb6fbc3bf9…   56.5MB    
+1d45c7faad31   6 seconds ago            /bin/sh -c #(nop) WORKDIR /app                  8.19kB    
+e04fa72be13b   4 days ago               ENTRYPOINT ["/__cacert_entrypoint.sh"]          0B        buildkit.dockerfile.v0
+<missing>      4 days ago               COPY --chmod=755 entrypoint.sh /__cacert_ent…   12.3kB    buildkit.dockerfile.v0
+<missing>      4 days ago               RUN /bin/sh -c set -eux;     echo "Verifying…   12.3kB    buildkit.dockerfile.v0
+<missing>      4 days ago               RUN /bin/sh -c set -eux;     ARCH="$(dpkg --…   142MB     buildkit.dockerfile.v0
+<missing>      4 days ago               ENV JAVA_VERSION=jdk-17.0.20.1+1                0B        buildkit.dockerfile.v0
+<missing>      4 days ago               RUN /bin/sh -c set -eux;     apt-get update;…   58.2MB    buildkit.dockerfile.v0
+<missing>      4 days ago               ENV LANG=en_US.UTF-8 LANGUAGE=en_US:en LC_AL…   0B        buildkit.dockerfile.v0
+<missing>      4 days ago               ENV PATH=/opt/java/openjdk/bin:/usr/local/sb…   0B        buildkit.dockerfile.v0
+<missing>      4 days ago               ENV JAVA_HOME=/opt/java/openjdk                 0B        buildkit.dockerfile.v0
+<missing>      2 weeks ago              umoci raw add-layer --image /home/buildd/roc…   12.3kB    Add rock control metadata
+<missing>      2 weeks ago              umoci config --image /home/buildd/rockcraft-…   0B        Set annotations
+<missing>      2 weeks ago              umoci config --image /home/buildd/rockcraft-…   0B        Set labels
+<missing>      2 weeks ago              umoci config --image /home/buildd/rockcraft-…   0B        Set default PATH for bare-based rock
+<missing>      2 weeks ago              umoci config --image /home/buildd/rockcraft-…   0B        Set default commands
+<missing>      2 weeks ago              umoci config --image /home/buildd/rockcraft-…   0B        Set entrypoint
+<missing>      2 weeks ago              umoci raw add-layer --image /home/buildd/roc…   117MB     
+
+$ docker image inspect luggage-portal:1.0 --format ID: {{.Id}} Size: {{.Size}} Created: {{.Created}}
+ID: sha256:cdec67bfc9fe162a8bde87f9a5334f56ca02ab0fbe6fc983f238acea607ff397 Size: 160530746 Created: 2026-10-21T16:49:50.56448324-04:00
+
+$ docker rm -f portal
+Error response from daemon: No such container: portal
+
+$ docker run -d --name portal -p 8083:8080 luggage-portal:1.0
+d9e370e54043814d15d1f81344d24910b8dcb41076a9366cbccce89c5a7cfe27
+
+$ docker ps
+CONTAINER ID   IMAGE                COMMAND                  CREATED        STATUS                                     PORTS                                         NAMES
+d9e370e54043   luggage-portal:1.0   "java -jar app.war -…"   1 second ago   Up Less than a second (health: starting)   0.0.0.0:8083->8080/tcp, [::]:8083->8080/tcp   portal
+waiting 30 seconds for the app to start...
+
+$ docker logs --tail 15 portal
+2026-10-21T20:49:53.959Z  INFO 1 --- [luggage-portal] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-10-21T20:49:54.194Z  INFO 1 --- [luggage-portal] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-21T20:49:54.226Z  INFO 1 --- [luggage-portal] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-10-21T20:49:54.424Z  INFO 1 --- [luggage-portal] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:portaldb user=SA
+2026-10-21T20:49:54.426Z  INFO 1 --- [luggage-portal] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-10-21T20:49:55.220Z  INFO 1 --- [luggage-portal] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-21T20:49:55.279Z  INFO 1 --- [luggage-portal] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-21T20:49:55.676Z  INFO 1 --- [luggage-portal] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name reviewerUserDetailsService
+2026-10-21T20:49:55.737Z  INFO 1 --- [luggage-portal] [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page template: index
+2026-10-21T20:49:55.980Z  INFO 1 --- [luggage-portal] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoints beneath base path '/actuator'
+2026-10-21T20:49:56.414Z  INFO 1 --- [luggage-portal] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2026-10-21T20:49:56.425Z  INFO 1 --- [luggage-portal] [           main] c.c.l.LuggagePortalApplication           : Started LuggagePortalApplication in 4.714 seconds (process running for 5.119)
+2026-10-21T20:50:01.529Z  INFO 1 --- [luggage-portal] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-21T20:50:01.529Z  INFO 1 --- [luggage-portal] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-10-21T20:50:01.532Z  INFO 1 --- [luggage-portal] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 3 ms
+
+$ curl -I http://localhost:8083/
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+HTTP/1.1 200 
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 0
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: 0
+X-Frame-Options: DENY
+Content-Type: text/html;charset=UTF-8
+Content-Language: en-US
+Transfer-Encoding: chunked
+Date: Wed, 21 Oct 2026 20:50:21 GMT
+
+
+$ docker stats --no-stream portal
+CONTAINER ID   NAME      CPU %     MEM USAGE / LIMIT     MEM %     NET I/O         BLOCK I/O         PIDS
+d9e370e54043   portal    0.50%     303.8MiB / 3.824GiB   7.76%     7.07kB / 756B   53.2kB / 90.1kB   39
+
+$ docker stop portal
+portal
+
+$ docker ps -a --filter name=portal
+CONTAINER ID   IMAGE                COMMAND                  CREATED          STATUS                                PORTS     NAMES
+d9e370e54043   luggage-portal:1.0   "java -jar app.war -…"   33 seconds ago   Exited (143) Less than a second ago             portal
+
+$ docker start portal
+portal
+
+$ docker restart portal
+portal
+
+$ docker ps
+CONTAINER ID   IMAGE                COMMAND                  CREATED              STATUS                    PORTS                                         NAMES
+d9e370e54043   luggage-portal:1.0   "java -jar app.war -…"   About a minute ago   Up 20 seconds (healthy)   0.0.0.0:8083->8080/tcp, [::]:8083->8080/tcp   portal
+
+$ docker stop portal
+portal
+
+$ docker rm portal
+portal
+
+$ docker ps -a --filter name=portal
+CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+
+$ docker run -d --name portal -p 8083:8080 --restart unless-stopped luggage-portal:1.0
+4e198e99d97bca52081ce007b0b85bc7413f2b9a8f85d8383fbeade5d76d7575
+
+$ docker ps
+CONTAINER ID   IMAGE                COMMAND                  CREATED          STATUS                    PORTS                                         NAMES
+4e198e99d97b   luggage-portal:1.0   "java -jar app.war -…"   30 seconds ago   Up 30 seconds (healthy)   0.0.0.0:8083->8080/tcp, [::]:8083->8080/tcp   portal
+
+$ curl -I http://localhost:8083/
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+HTTP/1.1 200 
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 0
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: 0
+X-Frame-Options: DENY
+Content-Type: text/html;charset=UTF-8
+Content-Language: en-US
+Transfer-Encoding: chunked
+Date: Wed, 21 Oct 2026 20:51:34 GMT
+
+
+DONE. Log: /home/devops/projects/evidence/task-11/docker-command-log.txt
