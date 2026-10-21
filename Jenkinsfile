@@ -1,6 +1,6 @@
-// Task 10 pipeline: Checkout -> Build -> Unit Test -> Package -> Deploy to Test
-//                   -> Selenium Tests (quality gate) -> Deploy Final
-// If Unit Test or Selenium Tests fail, Jenkins stops and Deploy Final never runs.
+// Task 12 pipeline: Checkout -> Build -> Unit Test -> Package -> Deploy to Test -> Selenium
+//   -> Deploy Final (Tomcat) -> Docker Build -> Docker Push (local registry) -> Docker Deploy
+// If any test stage fails, nothing after it runs (no image, no push, no deployment).
 pipeline {
     agent any
 
@@ -15,16 +15,15 @@ pipeline {
         WEBAPPS   = '/opt/tomcat/webapps'
         BASE      = 'http://localhost:8082'
         APP_ENV   = "${(params.DEPLOY_ENV ?: 'dev').toUpperCase()}"
+        REGISTRY  = 'localhost:5000'
+        IMAGE     = 'localhost:5000/luggage-portal'
+        TAG       = "${env.BUILD_NUMBER}"
     }
 
     stages {
-        stage('Checkout') {
-            steps { checkout scm }
-        }
+        stage('Checkout') { steps { checkout scm } }
 
-        stage('Build') {
-            steps { sh 'mvn -B clean compile' }
-        }
+        stage('Build') { steps { sh 'mvn -B clean compile' } }
 
         stage('Unit Test') {
             steps { sh 'mvn -B test' }
@@ -55,7 +54,6 @@ pipeline {
         }
 
         stage('Deploy Final') {
-            // Only reached when every test passed
             steps {
                 sh '''
                     cp target/luggage-portal.war $WEBAPPS/luggage-portal.war
@@ -63,10 +61,43 @@ pipeline {
                 '''
             }
         }
+
+        stage('Docker Build') {
+            steps { sh 'docker build -t $IMAGE:$TAG -t $IMAGE:latest .' }
+        }
+
+        stage('Docker Push') {
+            steps {
+                sh '''
+                    docker push $IMAGE:$TAG
+                    docker push $IMAGE:latest
+                    curl -s http://localhost:5000/v2/luggage-portal/tags/list
+                '''
+            }
+        }
+
+        stage('Docker Deploy') {
+            steps {
+                sh '''
+                    docker rm -f portal || true
+                    docker run -d --name portal --restart unless-stopped -p 8083:8080 $IMAGE:$TAG
+                    for i in $(seq 1 30); do
+                        if curl -sf http://localhost:8083/actuator/health > /dev/null; then
+                            echo "Container is healthy"; exit 0
+                        fi
+                        sleep 5
+                    done
+                    echo "Container did not become healthy"; docker logs --tail 30 portal; exit 1
+                '''
+            }
+        }
     }
 
     post {
-        success { archiveArtifacts artifacts: 'target/*.war', fingerprint: true }
-        failure { echo 'Pipeline failed - see the red stage. Deploy Final did not run.' }
+        success {
+            archiveArtifacts artifacts: 'target/*.war', fingerprint: true
+            echo "Deployed ${env.IMAGE}:${env.TAG} to http://localhost:8083"
+        }
+        failure { echo 'Pipeline failed - see the red stage. Later stages did not run.' }
     }
 }
