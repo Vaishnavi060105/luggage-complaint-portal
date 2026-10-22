@@ -1,0 +1,6 @@
+lrwxrwxrwx 1 root   root     45 Oct 22 15:20 /opt/luggage-portal/current.war -> /opt/luggage-portal/releases/portal-1.0.0.war
+
+/opt/luggage-portal/releases:
+total 110312
+-rw-r--r-- 1 portal root 56475030 Oct 22 15:19 portal-1.0.0.war
+-rw-r--r-- 1 portal root 56475030 Oct 22 15:20 portal-1.1.0.war

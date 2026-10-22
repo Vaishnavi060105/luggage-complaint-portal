@@ -1,0 +1,43 @@
+
+PLAY [Provision Luggage Complaint Portal] **************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [localhost]
+
+TASK [Install Java 17 and curl] ************************************************
+ok: [localhost]
+
+TASK [Create service user] *****************************************************
+changed: [localhost]
+
+TASK [Create application folders] **********************************************
+changed: [localhost] => (item=/opt/luggage-portal)
+changed: [localhost] => (item=/opt/luggage-portal/releases)
+changed: [localhost] => (item=/opt/luggage-portal/uploads)
+
+TASK [Create log folder] *******************************************************
+changed: [localhost]
+
+TASK [Copy this release (force=false keeps an existing release untouched, which makes rollback safe)] ***
+changed: [localhost]
+
+TASK [Point current.war at the selected release] *******************************
+changed: [localhost]
+
+TASK [Install systemd unit] ****************************************************
+changed: [localhost]
+
+TASK [Enable and start the service] ********************************************
+changed: [localhost]
+
+RUNNING HANDLER [Restart portal] ***********************************************
+changed: [localhost]
+
+TASK [Health check (waits until the app answers UP)] ***************************
+FAILED - RETRYING: Health check (waits until the app answers UP) (20 retries left).
+FAILED - RETRYING: Health check (waits until the app answers UP) (19 retries left).
+ok: [localhost]
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=11   changed=8    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
