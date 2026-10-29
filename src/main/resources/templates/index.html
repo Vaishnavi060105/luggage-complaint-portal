@@ -4,12 +4,24 @@
 <body>
 <header th:replace="~{fragments :: nav}"></header>
 <main class="container">
-  <h1>Luggage Complaint Portal</h1>
-  <p>Report delayed, damaged or lost luggage, then track your complaint with a reference number.</p>
+  <section class="hero">
+    <h1>Luggage Complaint Portal</h1>
+    <p>Report delayed, damaged or lost luggage, then track your complaint with a reference number.</p>
+    <a class="btn" th:href="@{/complaints/new}">Report a problem</a>
+    <a class="btn secondary" th:href="@{/track}">Track my complaint</a>
+  </section>
+
   <div class="cards">
-    <a class="card" id="linkSubmit" th:href="@{/complaints/new}"><h2>Submit Complaint</h2><p>Report a luggage problem.</p></a>
-    <a class="card" id="linkTrack" th:href="@{/track}"><h2>Track Complaint</h2><p>Check the status of your complaint.</p></a>
-    <a class="card" id="linkReviewer" th:href="@{/login}"><h2>Reviewer Login</h2><p>For airline staff only.</p></a>
+    <a class="card" id="linkSubmit" th:href="@{/complaints/new}"><span class="icon">&#9992;&#65039;</span><h2>Submit Complaint</h2><p>Report a luggage problem.</p></a>
+    <a class="card" id="linkTrack" th:href="@{/track}"><span class="icon">&#128269;</span><h2>Track Complaint</h2><p>Check the status of your complaint.</p></a>
+    <a class="card" id="linkReviewer" th:href="@{/login}"><span class="icon">&#128737;&#65039;</span><h2>Reviewer Login</h2><p>For airline staff only.</p></a>
+  </div>
+
+  <h2 class="section-title">How it works</h2>
+  <div class="steps">
+    <div class="step"><b>1</b><h2>Submit</h2><p>Fill in your flight and bag details and attach a photo if you have one.</p></div>
+    <div class="step"><b>2</b><h2>Get a reference</h2><p>You receive a unique reference number straight away.</p></div>
+    <div class="step"><b>3</b><h2>Track and resolve</h2><p>Follow the status while an airline reviewer approves or rejects your claim.</p></div>
   </div>
 </main>
 <footer th:replace="~{fragments :: footer}"></footer>
